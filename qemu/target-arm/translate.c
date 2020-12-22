@@ -6144,7 +6144,7 @@ static int disas_neon_data_insn(DisasContext *s, uint32_t insn)
                         val = 0;
                         for (n = 0; n < 4; n++) {
                             if (imm & (1 << (n + (pass & 1) * 4)))
-                                val |= 0xff << (n * 8);
+                                val |= 0xffU << (n * 8);
                         }
                         tcg_gen_movi_i32(tcg_ctx, tmp, val);
                     } else {
@@ -7857,7 +7857,7 @@ static void disas_arm_insn(DisasContext *s, unsigned int insn)  // qq
             /* Sign-extend the 24-bit offset */
             offset = ((int32_t)(insn << 8)) >> 8;
             /* offset * 4 + bit24 * 2 + (thumb bit) */
-            val += (offset << 2) | ((insn >> 23) & 2) | 1;
+            val += (((uint32_t)offset) << 2) | ((insn >> 23) & 2) | 1;
             /* pipeline offset */
             val += 4;
             /* protected by ARCH(5); above, near the start of uncond block */
@@ -11127,7 +11127,7 @@ static void disas_thumb_insn(CPUARMState *env, DisasContext *s) // qq
         /* jump to the offset */
         val = (uint32_t)s->pc + 2;
         offset = ((int32_t)((uint32_t)insn << 24)) >> 24;
-        val += offset << 1;
+        val += (int32_t)((uint32_t)offset << 1);
         gen_jmp(s, val);
         break;
 
@@ -11140,7 +11140,7 @@ static void disas_thumb_insn(CPUARMState *env, DisasContext *s) // qq
         /* unconditional branch */
         val = (uint32_t)s->pc;
         offset = ((int32_t)((uint32_t)insn << 21)) >> 21;
-        val += (offset << 1) + 2;
+        val += (int32_t)((uint32_t)offset << 1) + 2;
         gen_jmp(s, val);
         break;
 
