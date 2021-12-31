@@ -274,6 +274,8 @@ static void store_sp_checked(DisasContext *s, TCGv_i32 var)
 static inline void gen_set_cpsr(TCGContext *tcg_ctx, TCGv_i32 var, uint32_t mask)
 {
     TCGv_i32 tmp_mask = tcg_const_i32(tcg_ctx, mask);
+    qemu_log_mask(CPU_LOG_INT,
+                  "gen_set_cpsr: mask %08x\n", mask);
     gen_helper_cpsr_write(tcg_ctx, tcg_ctx->cpu_env, var, tmp_mask);
     tcg_temp_free_i32(tcg_ctx, tmp_mask);
 }
@@ -2732,6 +2734,9 @@ static uint32_t msr_mask(DisasContext *s, int flags, int spsr)
 {
     uint32_t mask = 0;
 
+    qemu_log_mask(CPU_LOG_INT,
+                  "msr_mask: flags %08x\n", flags);
+
     if (flags & (1 << 0)) {
         mask |= 0xff;
     }
@@ -2746,7 +2751,12 @@ static uint32_t msr_mask(DisasContext *s, int flags, int spsr)
     }
 
     /* Mask out undefined and reserved bits.  */
-    mask &= aarch32_cpsr_valid_mask(s->features, s->isar);
+    {
+        uint32_t valid_mask = aarch32_cpsr_valid_mask(s->features, s->isar);
+        qemu_log_mask(CPU_LOG_INT,
+                      "          valid mask = %08x (features=%llx)\n", valid_mask, s->features);
+        mask &= valid_mask;
+    }
 
     /* Mask out execution state.  */
     if (!spsr) {
@@ -2755,8 +2765,14 @@ static uint32_t msr_mask(DisasContext *s, int flags, int spsr)
 
     /* Mask out privileged bits.  */
     if (IS_USER(s)) {
+        qemu_log_mask(CPU_LOG_INT,
+                      "          In user mode (no priviledge changes)\n");
         mask &= CPSR_USER;
     }
+
+    qemu_log_mask(CPU_LOG_INT,
+                  "         = mask %08x\n", mask);
+
     return mask;
 }
 
@@ -2776,6 +2792,8 @@ static int gen_set_psr(DisasContext *s, uint32_t mask, int spsr, TCGv_i32 t0)
         tcg_gen_or_i32(tcg_ctx, tmp, tmp, t0);
         store_cpu_field(tcg_ctx, tmp, spsr);
     } else {
+        qemu_log_mask(CPU_LOG_INT,
+                      "gen_set_psr: mask %08x\n", mask);
         gen_set_cpsr(tcg_ctx, t0, mask);
     }
     tcg_temp_free_i32(tcg_ctx, t0);
@@ -2790,6 +2808,8 @@ static int gen_set_psr_im(DisasContext *s, uint32_t mask, int spsr, uint32_t val
     TCGv_i32 tmp;
     tmp = tcg_temp_new_i32(tcg_ctx);
     tcg_gen_movi_i32(tcg_ctx, tmp, val);
+    qemu_log_mask(CPU_LOG_INT,
+                  "gen_set_psr_im: mask %08x\n", mask);
     return gen_set_psr(s, mask, spsr, tmp);
 }
 
@@ -8530,6 +8550,8 @@ static bool trans_MSR_imm(DisasContext *s, arg_MSR_imm *a)
     uint32_t val = ror32(a->imm, a->rot * 2);
     uint32_t mask = msr_mask(s, a->mask, a->r);
 
+    qemu_log_mask(CPU_LOG_INT,
+                  "trans_MSR_imm: mask %08x\n", mask);
     if (gen_set_psr_im(s, mask, a->r, val)) {
         unallocated_encoding(s);
     }
@@ -8642,6 +8664,8 @@ static bool trans_MSR_reg(DisasContext *s, arg_MSR_reg *a)
         return false;
     }
     tmp = load_reg(s, a->rn);
+    qemu_log_mask(CPU_LOG_INT,
+                  "trans_MSR_reg: mask %08x\n", mask);
     if (gen_set_psr(s, mask, a->r, tmp)) {
         unallocated_encoding(s);
     }
@@ -11222,6 +11246,8 @@ static void arm_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
     dc->mmu_idx = core_to_arm_mmu_idx(env, core_mmu_idx);
     dc->current_el = arm_mmu_idx_to_el(dc->mmu_idx);
     dc->user = (dc->current_el == 0);
+    qemu_log_mask(CPU_LOG_INT,
+                  "arm_tr_init_disas_context: dc->user = %i, dc->mmu_idx = %i, dc->current_el = %i\n", dc->user, dc->mmu_idx, dc->current_el);
     dc->fp_excp_el = FIELD_EX32(tb_flags, TBFLAG_ANY, FPEXC_EL);
 
     if (arm_feature(env, ARM_FEATURE_M)) {

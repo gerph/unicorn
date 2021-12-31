@@ -7897,6 +7897,9 @@ void cpsr_write(CPUARMState *env, uint32_t val, uint32_t mask,
 {
     uint32_t changed_daif;
 
+    qemu_log_mask(CPU_LOG_INT,
+                  "cpsr_write: %08x, mask %08x\n", val, mask);
+
     if (mask & CPSR_NZCV) {
         env->ZF = (~val) & CPSR_Z;
         env->NF = val;
