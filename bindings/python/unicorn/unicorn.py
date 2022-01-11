@@ -698,6 +698,12 @@ class Uc(object):
     def ctl_request_cache(self, addr):
         return self.__ctl_rw_1_1_arg(uc.UC_CTL_TB_REQUEST_CACHE, addr, ctypes.c_uint64, uc_tb)
 
+    def ctl_get_debug_mask(self):
+        return self.__ctl_r_1_arg(uc.UC_CTL_DEBUG_MASK, ctypes.c_int64)
+    
+    def ctl_set_debug_mask(self, val):
+        self.__ctl_w_1_arg(uc.UC_CTL_DEBUG_MASK, val, ctypes.c_int64)
+
     # add a hook
     def hook_add(self, htype, callback, user_data=None, begin=1, end=0, arg1=0, arg2=0):
         _h2 = uc_hook_h()

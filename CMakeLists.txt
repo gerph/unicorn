@@ -981,6 +981,7 @@ set(UNICORN_COMMON_SRCS
     qemu/util/getauxval.c
     qemu/util/guest-random.c
     qemu/util/host-utils.c
+    qemu/util/log.c
     qemu/util/osdep.c
     qemu/util/qdist.c
     qemu/util/qemu-timer.c

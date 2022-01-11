@@ -25,6 +25,7 @@
 #include "qemu/target/riscv/unicorn.h"
 
 #include "qemu/include/qemu/queue.h"
+#include "qemu/include/qemu/log.h"
 #include "qemu-common.h"
 
 UNICORN_EXPORT
@@ -2183,6 +2184,21 @@ uc_err uc_ctl(uc_engine *uc, uc_control_type control, ...)
             }
         } else {
             err = UC_ERR_ARG;
+        }
+        break;
+    }
+
+    case UC_CTL_DEBUG_MASK: {
+
+        UC_INIT(uc);
+
+        if (rw == UC_CTL_IO_WRITE) {
+            int64_t mask = va_arg(args, int64_t);
+            qemu_set_loglevel(mask);
+        } else {
+            int64_t *maskp = va_arg(args, int64_t *);
+            int64_t mask = qemu_get_loglevel();
+            *maskp = mask;
         }
         break;
     }

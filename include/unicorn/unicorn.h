@@ -526,7 +526,11 @@ typedef enum uc_control_type {
     UC_CTL_TB_REQUEST_CACHE,
     // Invalidate a tb cache at a specific address
     // Write: @args = (uint64_t, uint64_t)
-    UC_CTL_TB_REMOVE_CACHE
+    UC_CTL_TB_REMOVE_CACHE,
+    // Read/Write the debug mask.
+    // Write: @args = (int64_t)
+    // Read:  @args = (int64_t*)
+    UC_CTL_DEBUG_MASK
 
 } uc_control_type;
 

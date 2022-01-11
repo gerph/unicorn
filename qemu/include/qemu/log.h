@@ -35,7 +35,7 @@
  * @fmt: printf-style format string
  * @args: optional arguments for format string
  */
-#define qemu_log_mask(MASK, FMT, ...) fprintf(stderr, "QEMULog: %s: ", #MASK), fprintf(stderr, FMT, ## __VA_ARGS__)
+#define qemu_log_mask(MASK, FMT, ...) do { if (qemu_loglevel & MASK) qemu_log(FMT, ## __VA_ARGS__); } while (0)
 
 /* log only if a bit is set on the current loglevel mask
  * and we are in the address range we care about:
@@ -45,5 +45,10 @@
  * @args: optional arguments for format string
  */
 #define qemu_log_mask_and_addr(MASK, ADDR, FMT, ...)
+
+extern int64_t qemu_loglevel;
+int qemu_log(const char *fmt, ...);
+void qemu_set_loglevel(int64_t log_flags);
+int64_t qemu_get_loglevel(void);
 
 #endif
